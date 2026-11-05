@@ -64,3 +64,12 @@ class CapteurVueTests(TestCase):
         self.assertEqual(reponse.context["temperature"], 20)
         self.assertEqual(reponse.context["humidite"], 50)
         self.assertEqual(reponse.context["date_dernier_releve"], recent.datetime)
+
+
+class IndexVueTests(TestCase):
+    def test_liens_ventilateurs_contiennent_l_id(self):
+        from controller.models import Ventilateur
+        ventilateur = Ventilateur.objects.create(nom="Haut", nb_ventilateurs=2, etage=1, gpio_broche=17)
+        reponse = self.client.get("/")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertContains(reponse, f'href="/ventilateur/{ventilateur.id}"')

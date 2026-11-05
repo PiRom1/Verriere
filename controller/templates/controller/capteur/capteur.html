@@ -12,9 +12,15 @@
 <h1>Capteur {{capteur.id}} {% if capteur.nom %}- {{capteur.nom}} {% endif %}</h1>
 <h2>Étage {{capteur.etage}} | Broche GPIO {{capteur.gpio_broche}}</h2>
 
+{% if date_dernier_releve %}
 Dernier relevé : {{date_dernier_releve}}
 <div id="capteur-temperature">{{temperature}}°C</div>
 <div id="capteur-humidite">{{humidite}}%</div>
+{% else %}
+Aucun relevé pour ce capteur pour l'instant.
+<div id="capteur-temperature"></div>
+<div id="capteur-humidite"></div>
+{% endif %}
 <div class="button" id="get-capteur-mesure" capteur-id="{{capteur.id}}">Nouvelle mesure</div>
 
 

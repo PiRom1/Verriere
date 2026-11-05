@@ -12,7 +12,7 @@
         {% for ventilateur in ventilateurs %}
             <li>
                 <a href="/ventilateur/{{ventilateur.id}}">
-                    {{ ventilateur }} : {{ ventilateur.nb_ventilateurs }} ventilateur(s), {% if ventilateur.est_allume %}allumé{% else %}éteint{% endif %}
+                    {{ ventilateur.ventilateur }} : {{ ventilateur.ventilateur.nb_ventilateurs }} ventilateur(s), {% if ventilateur.etat %}allumé{% else %}éteint{% endif %}
                 </a>
             </li>
         {% endfor %}

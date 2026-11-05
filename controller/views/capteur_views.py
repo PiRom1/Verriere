@@ -15,22 +15,20 @@ def capteur(request, id):
     """
 
     capteur = get_object_or_404(Capteur, id=id)
-    dernier_releve = Releve.objects.all().order_by('-datetime').first()
 
-    if dernier_releve:
-        temperature = CapteurMesure.objects.get(releve = dernier_releve).temperature
-        humidite = CapteurMesure.objects.get(releve = dernier_releve).humidite
-    else:
-        temperature = None
-        humidite = None
+    # Dernière mesure de CE capteur (un relevé peut ne pas en avoir si la lecture a échoué).
+    derniere_mesure = (capteur.mesures
+                       .select_related('releve')
+                       .order_by('-releve__datetime')
+                       .first())
 
     context = {
             'capteur' : capteur,
-            'temperature' : temperature,
-            'humidite' : humidite,
-            'date_dernier_releve' : dernier_releve.datetime
+            'temperature' : derniere_mesure.temperature if derniere_mesure else None,
+            'humidite' : derniere_mesure.humidite if derniere_mesure else None,
+            'date_dernier_releve' : derniere_mesure.releve.datetime if derniere_mesure else None,
         }
-        
+
     return render(request, 'controller/capteur/capteur.html', context)
     
 

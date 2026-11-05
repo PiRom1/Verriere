@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from controller.models import Ventilateur, Capteur, Releve
 from django.shortcuts import render
-
+from controller.controls.ventilateur_controls import get_etat_ventilateur
 
 def index(request):
     """
@@ -13,7 +13,7 @@ def index(request):
     derniers_releves = Releve.objects.all().order_by('-datetime')[:10]
 
     context = {
-        'ventilateurs' : ventilateurs,
+        'ventilateurs' : [{'ventilateur' : ventilateur, 'etat' : get_etat_ventilateur(ventilateur)} for ventilateur in ventilateurs],
         'capteurs' : capteurs,
         'derniers_releves' : derniers_releves
     }

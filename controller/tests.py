@@ -14,14 +14,11 @@ class HardwareFakeTests(TestCase):
 
         ventilateur = Ventilateur.objects.create(nom="Haut", nb_ventilateurs=2, etage=1, gpio_broche=17)
 
+        # L'état n'est plus stocké sur le modèle : il est lu sur le relais.
         commander_ventilateur(ventilateur, "on")
-        ventilateur.refresh_from_db()
-        self.assertTrue(ventilateur.est_allume)
         self.assertEqual(relais(17).value, 1)
 
         commander_ventilateur(ventilateur, "off")
-        ventilateur.refresh_from_db()
-        self.assertFalse(ventilateur.est_allume)
         self.assertEqual(relais(17).value, 0)
 
     def test_dht_fake_renvoie_des_valeurs_plausibles(self):
@@ -31,3 +28,39 @@ class HardwareFakeTests(TestCase):
         self.assertTrue(18.0 <= capteur.temperature <= 30.0)
         self.assertTrue(40.0 <= capteur.humidity <= 80.0)
         capteur.exit()  # ne doit pas lever
+
+
+class CapteurVueTests(TestCase):
+    """La page d'un capteur ne doit jamais faire 500, quel que soit l'état des relevés."""
+
+    def setUp(self):
+        from controller.models import Capteur
+        self.capteur = Capteur.objects.create(nom="Bas", etage=0, gpio_broche=4)
+        self.autre = Capteur.objects.create(nom="Haut", etage=1, gpio_broche=17)
+
+    def test_sans_aucun_releve(self):
+        reponse = self.client.get(f"/capteur/{self.capteur.id}")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertIsNone(reponse.context["temperature"])
+        self.assertIsNone(reponse.context["date_dernier_releve"])
+
+    def test_releve_sans_mesure_pour_ce_capteur(self):
+        from controller.models import Releve, CapteurMesure
+        releve = Releve.objects.create()
+        CapteurMesure.objects.create(releve=releve, capteur=self.autre, temperature=21, humidite=51)
+        reponse = self.client.get(f"/capteur/{self.capteur.id}")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertIsNone(reponse.context["temperature"])
+
+    def test_affiche_la_derniere_mesure_de_ce_capteur(self):
+        from controller.models import Releve, CapteurMesure
+        ancien = Releve.objects.create()
+        CapteurMesure.objects.create(releve=ancien, capteur=self.capteur, temperature=10, humidite=40)
+        recent = Releve.objects.create()
+        CapteurMesure.objects.create(releve=recent, capteur=self.autre, temperature=99, humidite=99)
+        CapteurMesure.objects.create(releve=recent, capteur=self.capteur, temperature=20, humidite=50)
+        reponse = self.client.get(f"/capteur/{self.capteur.id}")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse.context["temperature"], 20)
+        self.assertEqual(reponse.context["humidite"], 50)
+        self.assertEqual(reponse.context["date_dernier_releve"], recent.datetime)

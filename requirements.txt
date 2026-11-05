@@ -2,3 +2,5 @@ django
 django-extensions
 django-constance
 python-dotenv
+gunicorn
+whitenoise

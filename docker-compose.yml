@@ -1,0 +1,42 @@
+# Sur le Pi : docker compose up -d --build
+# Puis depuis le téléphone : http://<ip-du-pi>:8000
+
+services:
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file: .env                     # CODE_SECRET_RELEVE et DJANGO_SECRET_KEY
+    environment:
+      VERRIERE_HARDWARE: real
+      VERRIERE_ALLOWED_HOSTS: "*"
+      VERRIERE_DB_PATH: /data/db.sqlite3
+      TZ: Europe/Paris
+    ports:
+      - "8000:8000"
+    volumes:
+      - verriere-data:/data            # la base SQLite survit aux rebuilds
+    privileged: true                   # donne au conteneur l'accès aux broches GPIO du Pi
+
+  scheduler:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      - web
+    env_file: .env                     # pour CODE_SECRET_RELEVE
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      # Appelle le backend toutes les 30 s. C'est le backend qui décide
+      # s'il est temps de faire un relevé (période réglée dans l'admin).
+      - |
+        while true; do
+          sleep 30
+          curl -sS -f -X POST http://web:8000/releve/ecrire \
+               -H "Content-Type: application/json" \
+               -d "{\"code_secret\": \"$${CODE_SECRET_RELEVE}\"}" \
+            && echo " <- relevé OK $$(date -Iseconds)" \
+            || echo "relevé en échec $$(date -Iseconds)"
+        done
+
+volumes:
+  verriere-data:

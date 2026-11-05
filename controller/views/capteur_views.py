@@ -15,7 +15,7 @@ def capteur(request, id):
     """
 
     capteur = get_object_or_404(Capteur, id=id)
-    dernier_releve = Releve.objects.all().order_by('datetime').first()
+    dernier_releve = Releve.objects.all().order_by('-datetime').first()
 
     if dernier_releve:
         temperature = CapteurMesure.objects.get(releve = dernier_releve).temperature

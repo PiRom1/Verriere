@@ -20,7 +20,6 @@ import dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 dotenv.load_dotenv(os.path.join(BASE_DIR, '.env'))
-print("path dotenv : ", os.path.join(BASE_DIR, '.env'))
 
 ## PARAMETERS
 CODE_SECRET_RELEVE = os.getenv("CODE_SECRET_RELEVE", "")
@@ -32,12 +31,13 @@ if not CODE_SECRET_RELEVE:
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-g9-0j4kv&i#p^*ei6ep687p$l$)_6y2tt5g=apkgg3kw(#-y%_'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", 'django-insecure-g9-0j4kv&i#p^*ei6ep687p$l$)_6y2tt5g=apkgg3kw(#-y%_')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("VERRIERE_DEBUG", "false").lower() in ("1", "true", "yes")
 
-ALLOWED_HOSTS = []
+# Liste séparée par des virgules. "*" accepte tout (réseau local).
+ALLOWED_HOSTS = [h.strip() for h in os.environ.get("VERRIERE_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
 # Matériel : "fake" (simulé, pour le développement sur PC) ou "real" (Raspberry Pi).
 # Sur le Pi : export VERRIERE_HARDWARE=real
@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # sert les fichiers statiques sous gunicorn
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -95,7 +96,7 @@ WSGI_APPLICATION = 'Verriere.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.environ.get("VERRIERE_DB_PATH", BASE_DIR / 'db.sqlite3'),
     }
 }
 
@@ -124,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = os.environ.get("TZ", "Europe/Paris")
 
 USE_I18N = True
 
@@ -135,6 +136,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'  # cible de collectstatic (Docker)
 
 
 # Email

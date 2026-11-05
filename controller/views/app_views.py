@@ -10,7 +10,7 @@ def index(request):
 
     ventilateurs = Ventilateur.objects.all()
     capteurs = Capteur.objects.all()
-    derniers_releves = Releve.objects.all().order_by('datetime')[:10]
+    derniers_releves = Releve.objects.all().order_by('-datetime')[:10]
 
     context = {
         'ventilateurs' : ventilateurs,

@@ -3,3 +3,4 @@
 gpiozero
 lgpio
 adafruit-circuitpython-dht
+gpiod>=2.2.2,<3

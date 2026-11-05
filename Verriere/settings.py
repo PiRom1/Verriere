@@ -39,6 +39,14 @@ DEBUG = os.environ.get("VERRIERE_DEBUG", "false").lower() in ("1", "true", "yes"
 # Liste séparée par des virgules. "*" accepte tout (réseau local).
 ALLOWED_HOSTS = [h.strip() for h in os.environ.get("VERRIERE_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
+# URL publique quand on passe par le proxy HTTPS Caddy, ex : https://biche-verriere.duckdns.org:8443
+# Sans elle, Django refuse les formulaires (CSRF) venant de l'extérieur.
+PUBLIC_URL = os.environ.get("VERRIERE_PUBLIC_URL", "").strip().rstrip("/")
+if PUBLIC_URL:
+    CSRF_TRUSTED_ORIGINS = [PUBLIC_URL]
+    # Caddy parle à Django en HTTP mais indique que le client est en HTTPS.
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
 # Matériel : "fake" (simulé, pour le développement sur PC) ou "real" (Raspberry Pi).
 # Sur le Pi : export VERRIERE_HARDWARE=real
 HARDWARE_MODE = os.environ.get("VERRIERE_HARDWARE", "fake")

@@ -1,5 +1,7 @@
 # Sur le Pi : docker compose up -d --build
-# Puis depuis le téléphone : http://<ip-du-pi>:8000
+# Depuis le wifi : http://<ip-du-pi>:8000
+# Depuis l'extérieur : https://biche-verriere.duckdns.org:8443 (via Caddy,
+# la Livebox redirige le port 8443 vers le Pi).
 
 services:
 
@@ -10,6 +12,7 @@ services:
     environment:
       VERRIERE_HARDWARE: real
       VERRIERE_ALLOWED_HOSTS: "*"
+      # VERRIERE_PUBLIC_URL (dans .env) : autorise les formulaires derrière Caddy
       VERRIERE_DB_PATH: /data/db.sqlite3
       TZ: Europe/Paris
     ports:
@@ -38,5 +41,20 @@ services:
             || echo "relevé en échec $$(date -Iseconds)"
         done
 
+  caddy:
+    build: docker/caddy
+    restart: unless-stopped
+    env_file: .env                     # VERRIERE_PUBLIC_URL et DUCKDNS_TOKEN
+    depends_on:
+      - web
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./docker/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data               # certificats Let's Encrypt, survivent aux rebuilds
+      - caddy-config:/config
+
 volumes:
   verriere-data:
+  caddy-data:
+  caddy-config:

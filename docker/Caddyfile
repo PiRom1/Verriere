@@ -1,0 +1,9 @@
+# Portier HTTPS de la verrière.
+# VERRIERE_PUBLIC_URL et DUCKDNS_TOKEN viennent du .env (voir .env.example).
+{$VERRIERE_PUBLIC_URL} {
+	# Certificat Let's Encrypt validé via DNS (DuckDNS), renouvelé automatiquement.
+	tls {
+		dns duckdns {$DUCKDNS_TOKEN}
+	}
+	reverse_proxy web:8000
+}

@@ -1,0 +1,21 @@
+{% extends "controller/base.html" %}
+{% load static %}
+
+{% block extra_scripts %}
+        <script src="{% static 'controller/capteur/js/capteur.js' %}" type="module"></script>
+{% endblock %}
+{% block title %}Accueil - Verrière{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<h1>Capteur {{capteur.id}} {% if capteur.nom %}- {{capteur.nom}} {% endif %}</h1>
+<h2>Étage {{capteur.etage}} | Broche GPIO {{capteur.gpio_broche}}</h2>
+
+Dernier relevé : {{date_dernier_releve}}
+<div id="capteur-temperature">{{temperature}}°C</div>
+<div id="capteur-humidite">{{humidite}}%</div>
+<div class="button" id="get-capteur-mesure" capteur-id="{{capteur.id}}">Nouvelle mesure</div>
+
+
+{% endblock %}

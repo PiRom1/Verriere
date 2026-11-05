@@ -1,0 +1,25 @@
+{% extends "controller/base.html" %}
+{% load static %}
+
+{% block extra_scripts %}
+        <script src="{% static 'controller/ventilateur/js/ventilateur.js' %}" type="module"></script>
+{% endblock %}
+
+{% block title %}Accueil - Verrière{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<h1>Ventilateur {{ventilateur.id}} {% if ventilateur.nom %}- {{ventilateur.nom}} {% endif %}</h1>
+<h2>Étage {{ventilateur.etage}} | Broche GPIO {{ventilateur.gpio_broche}}</h2>
+
+<div id="ventilateur-etat">
+    {% if ventilateur_est_allume %}
+        Allumé
+    {% else %}
+        Éteint
+    {% endif %}
+</div>
+
+<input type="checkbox" id="ventilateur-switch" data-id="{{ ventilateur.id }}" {% if ventilateur_est_allume %}checked{% endif %}>
+
+{% endblock %}

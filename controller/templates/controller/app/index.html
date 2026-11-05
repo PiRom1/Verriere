@@ -1,0 +1,58 @@
+{% extends "controller/base.html" %}
+
+{% block title %}Accueil - Verrière{% endblock %}
+
+{% block content %}
+<h1>Ma verrière</h1>
+
+<section>
+    <h2>Ventilateurs</h2>
+    {% if ventilateurs %}
+    <ul>
+        {% for ventilateur in ventilateurs %}
+            <li>
+                <a href="/ventilateur/{{ventilateur.id}}">
+                    {{ ventilateur }} : {{ ventilateur.nb_ventilateurs }} ventilateur(s), {% if ventilateur.est_allume %}allumé{% else %}éteint{% endif %}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Aucun ventilateur enregistré.</p>
+    {% endif %}
+</section>
+
+<section>
+    <h2>Capteurs</h2>
+    {% if capteurs %}
+    <ul>
+        {% for capteur in capteurs %}
+            <li>
+                <a href="/capteur/{{capteur.id}}">
+                    {{ capteur }} (broche {{ capteur.gpio_broche }})
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Aucun capteur enregistré.</p>
+    {% endif %}
+</section>
+
+<section>
+    <h2>Derniers relevés</h2>
+    {% if derniers_releves %}
+    <ul>
+        {% for releve in derniers_releves %}
+            <li>
+                <a href="/releves/{{releve.id}}">
+                    {{ releve.datetime }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>Aucun relevé pour le moment.</p>
+    {% endif %}
+</section>
+{% endblock %}

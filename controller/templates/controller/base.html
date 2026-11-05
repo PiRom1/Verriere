@@ -1,0 +1,28 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Verrière{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'controller/css/base.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% csrf_token %}
+    <header class="site-header">
+        <a class="site-header__brand" href="{% url 'index' %}">Verrière</a>
+        <nav class="site-header__nav">
+            <a href="{% url 'index' %}">Accueil</a>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'admin:index' %}">Admin</a>
+        </nav>
+    </header>
+
+    <main class="site-main">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

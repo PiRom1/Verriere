@@ -1,0 +1,4 @@
+# Dépendances supplémentaires pour le Raspberry Pi uniquement
+-r requirements.txt
+gpiozero
+adafruit-circuitpython-dht

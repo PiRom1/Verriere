@@ -19,7 +19,7 @@ services:
     privileged: true                   # donne au conteneur l'accès aux broches GPIO du Pi
 
   scheduler:
-    image: curlimages/curl:8.11.1
+    image: alpine:3.20                 # multi-arch (dont armv7), contient wget
     restart: unless-stopped
     depends_on:
       - web
@@ -31,9 +31,9 @@ services:
       - |
         while true; do
           sleep 30
-          curl -sS -f -X POST http://web:8000/releve/ecrire \
-               -H "Content-Type: application/json" \
-               -d "{\"code_secret\": \"$${CODE_SECRET_RELEVE}\"}" \
+          wget -q -O - http://web:8000/releve/ecrire \
+               --header="Content-Type: application/json" \
+               --post-data="{\"code_secret\": \"$${CODE_SECRET_RELEVE}\"}" \
             && echo " <- relevé OK $$(date -Iseconds)" \
             || echo "relevé en échec $$(date -Iseconds)"
         done

@@ -7,6 +7,7 @@ urlpatterns = [
     path("home", app_views.home, name="home"),
     path("capteur/<int:id>", capteur_views.capteur, name="capteur"),
     path("ventilateur/<int:id>", ventilateur_views.ventilateur, name="ventilateur"),
+    path("releve/<int:id>", releve_views.releve, name="releve"),
 
     ## Fetch URLs
 

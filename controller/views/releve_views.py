@@ -7,12 +7,34 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from controller.controls.releve_controls import ecrire_releve
-from controller.models import Releve
+from controller.models import Releve, VentilateurEtat, CapteurMesure
 import json
 from django.conf import settings
 from datetime import timedelta
 from django.utils import timezone
 from constance import config
+from django.shortcuts import render, get_object_or_404, redirect
+
+
+
+def releve(request, id):
+    """
+    Détail d'un releve
+    """
+
+    releve = get_object_or_404(Releve, id = id)
+    capteur_mesures = CapteurMesure.objects.filter(releve = releve)
+    ventilateur_etats = VentilateurEtat.objects.filter(releve = releve)
+
+    context = {
+        'releve' : releve,
+        'capteur_mesures' : capteur_mesures,
+        'ventilateur_etats' : ventilateur_etats
+            }
+    
+    return render(request, 'controller/releve/releve.html', context)
+        
+
 
 
 

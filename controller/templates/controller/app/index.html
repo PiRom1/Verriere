@@ -26,10 +26,10 @@
     <h2>Capteurs</h2>
     {% if capteurs %}
     <ul>
-        {% for capteur in capteurs %}
+        {% for capteur_data in capteurs %}
             <li>
-                <a href="/capteur/{{capteur.id}}">
-                    {{ capteur }} (broche {{ capteur.gpio_broche }})
+                <a href="/capteur/{{capteur_data.capteur.id}}">
+                    {{ capteur_data.capteur.nom }} : {{capteur_data.temperature}}°C / {{capteur_data.humidite}}%
                 </a>
             </li>
         {% endfor %}
@@ -45,7 +45,7 @@
     <ul>
         {% for releve in derniers_releves %}
             <li>
-                <a href="/releves/{{releve.id}}">
+                <a href="/releve/{{releve.id}}">
                     {{ releve.datetime }}
                 </a>
             </li>
@@ -55,4 +55,70 @@
     <p>Aucun relevé pour le moment.</p>
     {% endif %}
 </section>
+
+<section>
+    <h2>Historique</h2>
+    {% if historique.dates %}
+    <h3>Température</h3>
+    <div class="graphe"><canvas id="graphe-temperature"></canvas></div>
+    <h3>Humidité</h3>
+    <div class="graphe"><canvas id="graphe-humidite"></canvas></div>
+    {{ historique|json_script:"historique" }}
+    {% else %}
+    <p>Pas encore d'historique.</p>
+    {% endif %}
+</section>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .graphe { position: relative; height: 240px; }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if historique.dates %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script>
+    const historique = JSON.parse(document.getElementById('historique').textContent);
+    // Une couleur par capteur, dans un ordre fixe (palette validée daltonisme).
+    const couleurs = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+
+    // Température en trait plein, humidité en pointillés.
+    function graphe(canvasId, mesure, unite, pointilles) {
+        new Chart(document.getElementById(canvasId), {
+            type: 'line',
+            data: {
+                labels: historique.dates,
+                datasets: historique.capteurs.map((capteur, i) => ({
+                    label: capteur.nom,
+                    data: capteur[mesure],
+                    borderColor: couleurs[i],
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    pointHitRadius: 8,
+                    tension: 0.3,
+                })),
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: { callbacks: { label: ctx => `${ctx.dataset.label} : ${ctx.formattedValue} ${unite}` } },
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 8, maxRotation: 0 } },
+                    y: { title: { display: true, text: unite }, grid: { color: 'rgba(0, 0, 0, 0.08)' } },
+                },
+            },
+        });
+    }
+
+    graphe('graphe-temperature', 'temperature', '°C', false);
+    graphe('graphe-humidite', 'humidite', '%', true);
+</script>
+{% endif %}
 {% endblock %}

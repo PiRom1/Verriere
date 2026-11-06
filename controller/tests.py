@@ -73,3 +73,23 @@ class IndexVueTests(TestCase):
         reponse = self.client.get("/")
         self.assertEqual(reponse.status_code, 200)
         self.assertContains(reponse, f'href="/ventilateur/{ventilateur.id}"')
+
+    def test_index_sans_releve_avec_capteur(self):
+        from controller.models import Capteur
+        Capteur.objects.create(nom="Bas", etage=0, gpio_broche=4)
+        reponse = self.client.get("/")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse.context["historique"]["dates"], [])
+
+    def test_index_historique_chronologique_avec_trous(self):
+        from controller.models import Capteur, Releve, CapteurMesure
+        capteur = Capteur.objects.create(nom="Bas", etage=0, gpio_broche=4)
+        ancien = Releve.objects.create()
+        CapteurMesure.objects.create(releve=ancien, capteur=capteur, temperature=10, humidite=40)
+        Releve.objects.create()  # relevé sans mesure (lecture ratée)
+        reponse = self.client.get("/")
+        self.assertEqual(reponse.status_code, 200)
+        historique = reponse.context["historique"]
+        self.assertEqual(len(historique["dates"]), 2)
+        self.assertEqual(historique["capteurs"][0]["temperature"], [10, None])
+        self.assertEqual(reponse.context["capteurs"][0]["temperature"], 10)

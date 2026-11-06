@@ -1,0 +1,34 @@
+{% extends "controller/base.html" %}
+{% load static %}
+
+{% block title %}Relevé{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+
+<h1>Relevé du {{releve.datetime}}</h1>
+
+<h2>Capteurs : </h2>
+    <ul>
+        {% for capteur_mesure in capteur_mesures %}
+            <li>
+                Capteur {{capteur_mesure.capteur.nom}} (étage {{capteur_mesure.capteur.etage}})<br>
+                {{capteur_mesure.temperature}}°C<br>
+                {{capteur_mesure.humidite}}%
+            </li>
+        {% endfor %}
+    </ul>
+
+<h2>Ventilateurs : </h2>
+    <ul>
+        {% for ventilateur_etat in ventilateur_etats %}
+            <li>
+                Ventilateur {{ventilateur_etat.ventilateur.nom}} (étage {{ventilateur_etat.ventilateur.etage}})<br>     
+                {% if ventilateur_etat.ventilateur.est_allume %}Allumé{% else %}Éteint{% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+
+
+
+{% endblock %}

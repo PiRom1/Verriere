@@ -17,6 +17,6 @@ def relais(gpio):
 
 
 def dht(gpio):
-    if gpio not in _devices:
-        _devices[gpio] = adafruit_dht.DHT22(getattr(board, f"D{gpio}"))
-    return _devices[gpio]
+    # Pas de cache : l'appelant termine chaque lecture par exit(), qui tue le
+    # sous-processus de lecture des impulsions et rend l'objet inutilisable.
+    return adafruit_dht.DHT22(getattr(board, f"D{gpio}"))

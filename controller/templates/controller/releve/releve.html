@@ -24,7 +24,7 @@
         {% for ventilateur_etat in ventilateur_etats %}
             <li>
                 Ventilateur {{ventilateur_etat.ventilateur.nom}} (étage {{ventilateur_etat.ventilateur.etage}})<br>     
-                {% if ventilateur_etat.ventilateur.est_allume %}Allumé{% else %}Éteint{% endif %}
+                {% if ventilateur_etat.est_allume %}Allumé{% else %}Éteint{% endif %}
             </li>
         {% endfor %}
     </ul>

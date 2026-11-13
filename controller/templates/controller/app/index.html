@@ -1,68 +1,71 @@
 {% extends "controller/base.html" %}
+{% load static %}
 
 {% block title %}Accueil - Verrière{% endblock %}
 
 {% block content %}
+
+{{ ventilateurs|json_script:"ventilateurs" }}
+{{ capteurs|json_script:"capteurs" }}
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+        <filter id="crayon"><feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="1.6"/></filter>
+        <pattern id="hachures" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)"><line x1="0" y1="0" x2="0" y2="4" stroke="#3b3a33" stroke-width=".9" opacity=".55"/></pattern>
+        <symbol id="icone-thermometre" viewBox="0 0 24 24">
+            <path d="M10 11h4v3.5a4 4 0 1 1-4 0Z" fill="#c0583a" stroke="none"/>
+            <path d="M9.5 14V5a2.5 2.5 0 0 1 5 0v9a5 5 0 1 1-5 0Z"/>
+            <path d="M9.5 14V5a2.5 2.5 0 0 1 5 0v9a5 5 0 1 1-5 0Z" fill="url(#hachures)" stroke="none"/>
+        </symbol>
+        <symbol id="icone-goutte" viewBox="0 0 24 24">
+            <path d="M12 3C12 3 5.5 10.5 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.5 12 3 12 3Z" fill="#8fb7c4" stroke="none"/>
+            <path d="M12 3C12 3 5.5 10.5 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.5 12 3 12 3Z" fill="url(#hachures)" stroke="none"/>
+            <path d="M12 3C12 3 5.5 10.5 5.5 15a6.5 6.5 0 0 0 13 0C18.5 10.5 12 3 12 3Z"/>
+        </symbol>
+    </defs>
+</svg>
+
 <h1>Ma verrière</h1>
 
-<section>
-    <h2>Ventilateurs</h2>
-    {% if ventilateurs %}
-    <ul>
-        {% for item in ventilateurs %}
-            <li>
-                <a href="/ventilateur/{{ item.ventilateur.id }}">
-                    {{ item.ventilateur }} : {{ item.ventilateur.nb_ventilateurs }} ventilateur(s), {% if item.etat %}allumé{% else %}éteint{% endif %}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>Aucun ventilateur enregistré.</p>
-    {% endif %}
-</section>
+{% if kpis %}
+<div class="sw-kpis" title="▼ minimum, trait vert = moyenne, ▲ maximum, sur les relevés des {{ heures_historique }} dernière{{ heures_historique|pluralize }} heure{{ heures_historique|pluralize }}">
+    <div class="sw-encart__ligne"><span class="sw-encart__valeur">Mesures sur les {{ heures_historique }} dernière{{ heures_historique|pluralize }} heure{{ heures_historique|pluralize }} :</span></div>
+    <div class="sw-encart__ligne">
+        <svg class="sw-encart__icone"><use href="#icone-thermometre"></use></svg>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--min">▼</span>{{ kpis.temperature.min|floatformat:"1u" }}</span>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--moyenne"></span>{{ kpis.temperature.moyenne|floatformat:"1u" }}</span>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--max">▲</span>{{ kpis.temperature.max|floatformat:"1u" }}°C</span>
+    </div>
+    <div class="sw-encart__ligne">
+        <svg class="sw-encart__icone"><use href="#icone-goutte"></use></svg>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--min">▼</span>{{ kpis.humidite.min|floatformat:"1u" }}</span>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--moyenne"></span>{{ kpis.humidite.moyenne|floatformat:"1u" }}</span>
+        <span class="sw-encart__valeur"><span class="sw-kpis__marque sw-kpis__marque--max">▲</span>{{ kpis.humidite.max|floatformat:"1u" }}%</span>
+    </div>
+</div>
+{% endif %}
+
+<img src="{% static 'controller/img/verriere.png' %}" 
+     id="img-verriere"
+     class="sw-verriere"
+     alt="Verrière">
 
 <section>
-    <h2>Capteurs</h2>
-    {% if capteurs %}
-    <ul>
-        {% for capteur_data in capteurs %}
-            <li>
-                <a href="/capteur/{{capteur_data.capteur.id}}">
-                    {{ capteur_data.capteur.nom }} : {{capteur_data.temperature}}°C / {{capteur_data.humidite}}%
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>Aucun capteur enregistré.</p>
-    {% endif %}
-</section>
-
-<section>
-    <h2>Derniers relevés</h2>
-    {% if derniers_releves %}
-    <ul>
-        {% for releve in derniers_releves %}
-            <li>
-                <a href="/releve/{{releve.id}}">
-                    {{ releve.datetime }}
-                </a>
-            </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p>Aucun relevé pour le moment.</p>
-    {% endif %}
-</section>
-
-<section>
-    <h2>Historique</h2>
     {% if historique.dates %}
-    <h3>Température</h3>
-    <div class="graphe"><canvas id="graphe-temperature"></canvas></div>
-    <h3>Humidité</h3>
-    <div class="graphe"><canvas id="graphe-humidite"></canvas></div>
+    <div class="sw-graphe">
+        <div class="sw-graphe__titre">
+            <svg class="sw-encart__icone"><use href="#icone-thermometre"></use></svg>
+            Température <small>sur les {{ heures_historique }} dernière{{ heures_historique|pluralize }} heure{{ heures_historique|pluralize }}</small>
+        </div>
+        <div class="sw-graphe__zone"><canvas id="graphe-temperature"></canvas></div>
+    </div>
+    <div class="sw-graphe">
+        <div class="sw-graphe__titre">
+            <svg class="sw-encart__icone"><use href="#icone-goutte"></use></svg>
+            Humidité <small>sur les {{ heures_historique }} dernière{{ heures_historique|pluralize }} heure{{ heures_historique|pluralize }}</small>
+        </div>
+        <div class="sw-graphe__zone"><canvas id="graphe-humidite"></canvas></div>
+    </div>
     {{ historique|json_script:"historique" }}
     {% else %}
     <p>Pas encore d'historique.</p>
@@ -70,31 +73,77 @@
 </section>
 {% endblock %}
 
-{% block extra_head %}
-<style>
-    .graphe { position: relative; height: 240px; }
-</style>
-{% endblock %}
-
 {% block extra_scripts %}
+<script src="{% static 'controller/app/js/verriere.js' %}" type="module"></script>
+
 {% if historique.dates %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <script>
     const historique = JSON.parse(document.getElementById('historique').textContent);
-    // Une couleur par capteur, dans un ordre fixe (palette validée daltonisme).
-    const couleurs = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+    // Style carnet de croquis : police manuscrite, trait au crayon, papier crème.
+    const ENCRE = '#3b3a33';
+    const MOBILE = window.matchMedia('(max-width: 700px)').matches;
+    const TACTILE = window.matchMedia('(hover: none)').matches;  // téléphone : pas de survol
+    Chart.defaults.font.family = '"Segoe Print", "Bradley Hand", "Comic Sans MS", cursive';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = ENCRE;
+
+    // Une couleur par capteur, dans un ordre fixe (teintes de crayons de couleur).
+    const couleurs = ['#3b7d96', '#c0583a', '#4f7f4a', '#b8903a', '#7a5c8a', '#a65d7c', '#5f8a8b', '#6b6b5a'];
 
     // Température en trait plein, humidité en pointillés.
     function graphe(canvasId, mesure, unite, pointilles) {
+        const nbFrises = historique.ventilateurs.length;
+        const H_FRISE = MOBILE ? 7 : 9, ECART_FRISE = 3;
+
+        // Frise des ventilateurs au-dessus du graphique : une ligne par ventilateur, colorée quand il est allumé.
+        // Chaque relevé occupe la tranche de temps autour de son point. Une couleur par ventilateur (palette distincte de celle des capteurs).
+        const couleursVentilos = ['#6b8e5a', '#c9a227', '#8a6d9b', '#5a8a8a', '#a8734a', '#7a7a6a'];
+        const frises = {
+            id: 'frises',
+            beforeDraw(chart) {
+                const { ctx, chartArea, scales: { x } } = chart;
+                const pas = historique.dates.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) : chartArea.width;
+                ctx.save();
+                ctx.font = `${MOBILE ? 9 : 11}px ${Chart.defaults.font.family}`;
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                historique.ventilateurs.forEach((v, n) => {
+                    const haut = 4 + n * (H_FRISE + ECART_FRISE);
+                    const couleur = couleursVentilos[n % couleursVentilos.length];
+                    ctx.fillStyle = 'rgba(59, 58, 51, 0.08)';
+                    ctx.fillRect(chartArea.left, haut, chartArea.width, H_FRISE);
+                    ctx.fillStyle = couleur;
+                    v.etats.forEach((etat, k) => {
+                        if (!etat) return;
+                        const gauche = Math.max(chartArea.left, x.getPixelForValue(k) - pas / 2);
+                        const droite = Math.min(chartArea.right, x.getPixelForValue(k) + pas / 2);
+                        ctx.fillRect(gauche, haut, droite - gauche, H_FRISE);
+                    });
+                    ctx.strokeStyle = ENCRE;
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(chartArea.left, haut, chartArea.width, H_FRISE);
+                    ctx.fillStyle = ENCRE;
+                    ctx.fillText(`É${v.etage}`, chartArea.left - 6, haut + H_FRISE / 2);
+                });
+                ctx.restore();
+            },
+        };
+
+        let dernierIndex = null;  // tactile : point déjà touché une fois (infobulle affichée)
         new Chart(document.getElementById(canvasId), {
             type: 'line',
+            plugins: [frises],
             data: {
                 labels: historique.dates,
                 datasets: historique.capteurs.map((capteur, i) => ({
                     label: capteur.nom,
                     data: capteur[mesure],
-                    borderColor: couleurs[i],
-                    borderWidth: 2,
+                    borderColor: couleurs[i % couleurs.length],
+                    borderWidth: 2.5,
+                    borderCapStyle: 'round',
+                    borderJoinStyle: 'round',
+                    borderDash: pointilles ? [7, 5] : [],
                     pointRadius: 0,
                     pointHitRadius: 8,
                     tension: 0.3,
@@ -105,13 +154,60 @@
                 maintainAspectRatio: false,
                 animation: false,
                 interaction: { mode: 'index', intersect: false },
+                layout: { padding: { top: nbFrises ? 12 + nbFrises * (H_FRISE + ECART_FRISE) : 0 } },
+                // Souris : un clic ouvre le relevé. Tactile (pas de survol) : 1er tap = infobulle, 2e tap sur le même point = relevé.
+                onClick: (evenement, elements) => {
+                    if (!elements.length) {
+                        dernierIndex = null;
+                        return;
+                    }
+                    const index = elements[0].index;
+                    if (TACTILE && index !== dernierIndex) {
+                        dernierIndex = index;
+                        return;
+                    }
+                    window.location.href = `/releve/${historique.ids[index]}`;
+                },
+                onHover: (evenement, elements) => {
+                    evenement.native.target.style.cursor = elements.length ? 'pointer' : 'default';
+                },
                 plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: { callbacks: { label: ctx => `${ctx.dataset.label} : ${ctx.formattedValue} ${unite}` } },
+                    legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line' } },
+                    tooltip: {
+                        backgroundColor: '#efe6d0',
+                        titleColor: ENCRE,
+                        bodyColor: ENCRE,
+                        borderColor: ENCRE,
+                        borderWidth: 2,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: ctx => `${ctx.dataset.label} : ${ctx.formattedValue} ${unite}`,
+                            footer: items => {
+                                const k = items[0].dataIndex;
+                                const lignes = historique.ventilateurs
+                                    .filter(v => v.etats[k] !== null)
+                                    .map(v => `Ventilo étage ${v.etage} : ${v.etats[k] ? 'allumé' : 'éteint'}`);
+                                if (TACTILE) lignes.push('Retoucher pour ouvrir le relevé');
+                                return lignes;
+                            },
+                        },
+                        footerFont: { weight: 'normal', style: 'italic', size: 11 },
+                        footerColor: ENCRE,
+                    },
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { maxTicksLimit: 8, maxRotation: 0 } },
-                    y: { title: { display: true, text: unite }, grid: { color: 'rgba(0, 0, 0, 0.08)' } },
+                    x: {
+                        grid: { display: false },
+                        border: { color: ENCRE, width: 2 },
+                        ticks: { maxTicksLimit: MOBILE ? 4 : 8, maxRotation: 0, font: { size: MOBILE ? 11 : 14 } },
+                    },
+                    y: {
+                        title: { display: true, text: unite, font: { size: MOBILE ? 14 : 16, weight: 'bold' } },
+                        ticks: { font: { size: MOBILE ? 11 : 14 } },
+                        grace: '8%',  // marge au-dessus et en dessous de la courbe
+                        border: { color: ENCRE, width: 2 },
+                        grid: { color: 'rgba(59, 58, 51, 0.18)', borderDash: [3, 5] },
+                    },
                 },
             },
         });

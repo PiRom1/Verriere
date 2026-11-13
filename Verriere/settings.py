@@ -162,5 +162,6 @@ CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
 CONSTANCE_IGNORE_ADMIN_VERSION_CHECK = True
 
 CONSTANCE_CONFIG = {
-    'RELEVE_PERIODE_MINUTE' : (2, "Temps en minutes entre deux relevés", int)
+    'RELEVE_PERIODE_MINUTE' : (2, "Temps en minutes entre deux relevés", int),
+    'DELAIS_RELEVES_INDEX' : (24, "Nombre d'heures d'observation de relevés sur la page d'accueil", int)
 }

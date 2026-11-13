@@ -67,12 +67,14 @@ class CapteurVueTests(TestCase):
 
 
 class IndexVueTests(TestCase):
-    def test_liens_ventilateurs_contiennent_l_id(self):
+    def test_ventilateurs_transmis_au_js_avec_leur_id(self):
+        """L'index n'a plus de liste : le JS place les ventilateurs depuis les données de la vue."""
         from controller.models import Ventilateur
         ventilateur = Ventilateur.objects.create(nom="Haut", nb_ventilateurs=2, etage=1, gpio_broche=17)
         reponse = self.client.get("/")
         self.assertEqual(reponse.status_code, 200)
-        self.assertContains(reponse, f'href="/ventilateur/{ventilateur.id}"')
+        self.assertEqual(reponse.context["ventilateurs"][0]["ventilateur"]["id"], ventilateur.id)
+        self.assertContains(reponse, '<script id="ventilateurs" type="application/json">')
 
     def test_index_sans_releve_avec_capteur(self):
         from controller.models import Capteur
@@ -93,3 +95,13 @@ class IndexVueTests(TestCase):
         self.assertEqual(len(historique["dates"]), 2)
         self.assertEqual(historique["capteurs"][0]["temperature"], [10, None])
         self.assertEqual(reponse.context["capteurs"][0]["temperature"], 10)
+
+    def test_index_historique_etats_ventilateurs(self):
+        from controller.models import Ventilateur, Releve, VentilateurEtat
+        ventilateur = Ventilateur.objects.create(nom="Haut", nb_ventilateurs=2, etage=1, gpio_broche=17)
+        allume = Releve.objects.create()
+        VentilateurEtat.objects.create(releve=allume, ventilateur=ventilateur, est_allume=True)
+        Releve.objects.create()  # relevé sans état enregistré
+        reponse = self.client.get("/")
+        self.assertEqual(reponse.status_code, 200)
+        self.assertEqual(reponse.context["historique"]["ventilateurs"][0]["etats"], [True, None])

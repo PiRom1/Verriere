@@ -17,6 +17,10 @@ class Ventilateur(models.Model):
     def __str__(self):
         return f"{self.nom} (étage {self.etage})"
 
+    def to_dict(self):
+        return {'id': self.id, 'nom': self.nom, 'nb_ventilateurs': self.nb_ventilateurs, 'etage': self.etage, 'gpio_broche' : self.gpio_broche}
+
+
 
 class Capteur(models.Model):
     """
@@ -29,6 +33,10 @@ class Capteur(models.Model):
 
     def __str__(self):
         return f"{self.nom} (étage {self.etage})"
+
+    def to_dict(self):
+        return {'id': self.id, 'nom': self.nom, 'gpio_broche': self.gpio_broche, 'etage': self.etage}
+
 
 
 
